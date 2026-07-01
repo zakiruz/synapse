@@ -98,19 +98,23 @@ export class FooterManager {
 		const summary = details.createEl("summary", { cls: "synapse-bond-summary" });
 
 		const others = bond.atomPaths.filter((p) => p !== current.path);
-		const otherNames =
-			others.length > 0
-				? others.map((p) => {
-						const f = this.app.vault.getAbstractFileByPath(p);
-						return f instanceof TFile ? f.basename : p;
-					})
-				: [bond.file.basename];
-		const title = summary.createEl("a", {
-			cls: "internal-link synapse-bond-atom",
-			text: `↔ ${otherNames.join(", ")}`,
+		summary.createSpan({ cls: "synapse-bond-arrow", text: "↔" });
+		if (others.length === 0) {
+			const title = summary.createEl("a", {
+				cls: "internal-link synapse-bond-atom",
+				text: bond.file.basename,
+			});
+			title.setAttribute("data-href", bond.file.path);
+		}
+		others.forEach((p, i) => {
+			if (i > 0) summary.createSpan({ cls: "synapse-bond-arrow", text: "↔" });
+			const f = this.app.vault.getAbstractFileByPath(p);
+			const link = summary.createEl("a", {
+				cls: "internal-link synapse-bond-atom",
+				text: f instanceof TFile ? f.basename : p,
+			});
+			link.setAttribute("data-href", p);
 		});
-		const firstOther = others[0];
-		if (firstOther) title.setAttribute("data-href", firstOther);
 
 		if (bond.type) {
 			summary.createSpan({ cls: "synapse-bond-type", text: bond.type });

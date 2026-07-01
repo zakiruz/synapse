@@ -45,8 +45,8 @@ export default class SynapsePlugin extends Plugin {
 				const file = view?.file;
 				if (!file) return false;
 				if (checking) return true;
-				new AtomSuggestModal(this.app, file, (other) => {
-					void createBond(this.app, this.settings.bondsFolder, file, other);
+				new AtomSuggestModal(this.app, [file], (atoms) => {
+					void createBond(this.app, this.settings.bondsFolder, atoms);
 				}).open();
 				return true;
 			},

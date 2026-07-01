@@ -38,6 +38,10 @@
 	font-weight: 600;
 }
 
+.synapse-bond-arrow {
+	color: var(--text-faint);
+}
+
 .synapse-bond-type {
 	font-size: var(--font-smallest);
 	padding: 0.1em 0.5em;

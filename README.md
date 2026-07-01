@@ -26,7 +26,7 @@ Everything is plain markdown — without the plugin, bonds are still ordinary no
 
 ## Usage
 
-- **Create bond from current note** (command palette) — fuzzy-pick the other atom; the bond note is scaffolded in your bonds folder and opened for editing.
+- **Create bond from current note** (command palette) — fuzzy-pick the other atom(s); the bond note is scaffolded in your bonds folder and opened for editing. **Enter** picks the final atom and creates the bond; **Shift+Enter** adds an atom and keeps picking, so a bond can join any number of atoms.
 - Bonds render at the bottom of notes in both reading and editing mode.
 - `type` is free-form — let your own taxonomy emerge.
 - **Rebuild bond index** — manual refresh if anything looks stale.
@@ -51,5 +51,4 @@ npm run build  # type-check + production build
 
 - Bond strength — explicit or emergent from traversal
 - Custom atom/bond graph view (edges rendered as edges, thick when strong)
-- Hyperedges — bonds joining 3+ atoms
 - In-place bond editing from the atom's view
