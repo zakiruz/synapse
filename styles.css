@@ -78,3 +78,9 @@
 .synapse-embed .markdown-embed-content {
 	max-height: none;
 }
+
+/* Hide the bond wrapper's own open-link arrow ("open bond" covers it),
+   but keep the native arrows on embeds nested inside the bond content. */
+.synapse-embed > .markdown-embed-link {
+	display: none;
+}
