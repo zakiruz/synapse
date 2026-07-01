@@ -75,8 +75,17 @@
 	margin: 0;
 }
 
-.synapse-embed .markdown-embed-content {
+.synapse-embed .markdown-embed-content,
+.synapse-embed .markdown-embed-content > .markdown-preview-view {
 	max-height: none;
+	height: auto;
+	overflow: visible;
+}
+
+/* The embed repeats the bond's filename as a title; the summary already shows the atoms. */
+.synapse-embed .markdown-embed-title,
+.synapse-embed .inline-title {
+	display: none;
 }
 
 /* Hide the bond wrapper's own open-link arrow ("open bond" covers it),
