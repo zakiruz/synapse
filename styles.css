@@ -18,17 +18,17 @@
 }
 
 .synapse-toggle-all {
-	cursor: pointer;
-	font-size: var(--font-smallest);
-	font-weight: 400;
-	text-transform: none;
-	letter-spacing: normal;
 	color: var(--text-faint);
+	padding: 0 4px;
 }
 
 .synapse-toggle-all:hover {
 	color: var(--text-muted);
-	text-decoration: none;
+}
+
+.synapse-toggle-all svg {
+	width: 14px;
+	height: 14px;
 }
 
 .synapse-bond {

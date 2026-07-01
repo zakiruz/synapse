@@ -1,4 +1,4 @@
-import { App, Component, MarkdownRenderer, MarkdownView, TFile } from "obsidian";
+import { App, Component, MarkdownRenderer, MarkdownView, TFile, setIcon } from "obsidian";
 import { Bond, BondIndex } from "./bondIndex";
 import type { SynapseSettings } from "./main";
 
@@ -72,11 +72,13 @@ export class FooterManager {
 
 		const heading = footer.createDiv({ cls: "synapse-footer-heading" });
 		heading.createSpan({ text: `⚛ Bonds (${bonds.length})` });
-		const toggleAll = heading.createEl("a", { cls: "synapse-toggle-all" });
+		const toggleAll = heading.createDiv({ cls: "clickable-icon synapse-toggle-all" });
 
 		const allDetails = () => Array.from(footer.querySelectorAll<HTMLDetailsElement>("details.synapse-bond"));
 		const refreshToggleLabel = () => {
-			toggleAll.setText(allDetails().some((d) => !d.open) ? "expand all" : "collapse all");
+			const anyClosed = allDetails().some((d) => !d.open);
+			setIcon(toggleAll, anyClosed ? "chevrons-up-down" : "chevrons-down-up");
+			toggleAll.setAttribute("aria-label", anyClosed ? "Expand all" : "Collapse all");
 		};
 		toggleAll.addEventListener("click", (evt) => {
 			evt.preventDefault();
