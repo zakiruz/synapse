@@ -157,11 +157,10 @@ export class FooterManager {
 			summary.createSpan({ cls: "synapse-bond-type", text: bond.type });
 		}
 
-		const openLink = summary.createEl("a", {
-			cls: "internal-link synapse-bond-open",
-			text: "open bond",
-		});
+		const openLink = summary.createEl("a", { cls: "internal-link synapse-bond-open" });
+		setIcon(openLink, "arrow-up-right");
 		openLink.setAttribute("data-href", bond.file.path);
+		openLink.setAttribute("aria-label", "Open bond");
 
 		const body = details.createDiv({ cls: "synapse-bond-body" });
 		let markdown = await this.app.vault.cachedRead(bond.file);

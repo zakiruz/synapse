@@ -69,8 +69,19 @@
 
 .synapse-bond-open {
 	margin-left: auto;
-	font-size: var(--font-smallest);
+	display: flex;
+	align-items: center;
+	padding: 0 2px;
 	color: var(--text-faint);
+}
+
+.synapse-bond-open:hover {
+	color: var(--text-muted);
+}
+
+.synapse-bond-open svg {
+	width: 14px;
+	height: 14px;
 }
 
 .synapse-bond-body {
