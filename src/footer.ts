@@ -78,7 +78,9 @@ export class FooterManager {
 		}
 
 		// Internal links inside our custom container need their own click handling.
+		// Native embeds handle their own clicks (and preventDefault), so we skip those.
 		footer.addEventListener("click", (evt) => {
+			if (evt.defaultPrevented) return;
 			const target = (evt.target as HTMLElement).closest("a.internal-link");
 			if (!target) return;
 			evt.preventDefault();
@@ -86,6 +88,24 @@ export class FooterManager {
 			if (href) {
 				void this.app.workspace.openLinkText(href, file.path, evt.metaKey || evt.ctrlKey);
 			}
+		});
+
+		// Wire hover previews (page preview core plugin listens for this event).
+		const hoverParent = { hoverPopover: null };
+		footer.addEventListener("mouseover", (evt) => {
+			const target = (evt.target as HTMLElement).closest("a.internal-link");
+			if (!target) return;
+			const linktext = target.getAttribute("data-href") ?? target.getAttribute("href");
+			if (!linktext) return;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(this.app.workspace as any).trigger("hover-link", {
+				event: evt,
+				source: "synapse",
+				hoverParent,
+				targetEl: target,
+				linktext,
+				sourcePath: file.path,
+			});
 		});
 
 		parent.appendChild(footer);
@@ -136,6 +156,42 @@ export class FooterManager {
 			body.createDiv({ cls: "synapse-bond-empty", text: "(empty bond — open it to add content)" });
 			return;
 		}
+
+		// Prefer Obsidian's native embed machinery — nested embeds, link clicks
+		// and hover previews all behave exactly like a normal ![[embed]].
+		if (this.renderNativeEmbed(body, bond, comp)) return;
+
 		await MarkdownRenderer.render(this.app, markdown, body, bond.file.path, comp);
+	}
+
+	/**
+	 * Mount the bond note as a real markdown embed (the same component Obsidian
+	 * uses for ![[note]]). Relies on the undocumented embedRegistry, so it
+	 * fails soft: returns false and the caller falls back to MarkdownRenderer.
+	 */
+	private renderNativeEmbed(body: HTMLElement, bond: Bond, comp: Component): boolean {
+		try {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const creator = (this.app as any).embedRegistry?.embedByExtension?.["md"];
+			if (typeof creator !== "function") return false;
+
+			const wrapper = body.createDiv({ cls: "internal-embed markdown-embed inline-embed synapse-embed" });
+			wrapper.setAttribute("src", bond.file.basename);
+			const child = creator(
+				{ app: this.app, containerEl: wrapper, sourcePath: bond.file.path, showInline: true, depth: 0 },
+				bond.file,
+				"",
+			);
+			if (!child) {
+				wrapper.remove();
+				return false;
+			}
+			comp.addChild(child);
+			child.loadFile?.();
+			return true;
+		} catch (e) {
+			console.error("Synapse: native embed failed, using fallback renderer", e);
+			return false;
+		}
 	}
 }

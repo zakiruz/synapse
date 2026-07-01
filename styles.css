@@ -67,3 +67,14 @@
 	font-style: italic;
 	font-size: var(--font-smaller);
 }
+
+/* Native embed inside a bond: strip the embed chrome, keep native behavior. */
+.synapse-embed.markdown-embed {
+	border-left: none;
+	padding: 0;
+	margin: 0;
+}
+
+.synapse-embed .markdown-embed-content {
+	max-height: none;
+}

@@ -10,3 +10,6 @@ type: credential
 - password hint: *the usual scheme, variant 3*
 - 2FA: authenticator app
 - recovery codes: in the safe
+
+
+![[random note#^test]]
