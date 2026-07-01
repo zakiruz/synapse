@@ -6,12 +6,29 @@
 }
 
 .synapse-footer-heading {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
 	font-size: var(--font-smaller);
 	font-weight: 600;
 	color: var(--text-muted);
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
 	margin-bottom: 0.5em;
+}
+
+.synapse-toggle-all {
+	cursor: pointer;
+	font-size: var(--font-smallest);
+	font-weight: 400;
+	text-transform: none;
+	letter-spacing: normal;
+	color: var(--text-faint);
+}
+
+.synapse-toggle-all:hover {
+	color: var(--text-muted);
+	text-decoration: none;
 }
 
 .synapse-bond {

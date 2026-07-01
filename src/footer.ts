@@ -71,11 +71,26 @@ export class FooterManager {
 		comp.load();
 
 		const heading = footer.createDiv({ cls: "synapse-footer-heading" });
-		heading.setText(`⚛ Bonds (${bonds.length})`);
+		heading.createSpan({ text: `⚛ Bonds (${bonds.length})` });
+		const toggleAll = heading.createEl("a", { cls: "synapse-toggle-all" });
+
+		const allDetails = () => Array.from(footer.querySelectorAll<HTMLDetailsElement>("details.synapse-bond"));
+		const refreshToggleLabel = () => {
+			toggleAll.setText(allDetails().some((d) => !d.open) ? "expand all" : "collapse all");
+		};
+		toggleAll.addEventListener("click", (evt) => {
+			evt.preventDefault();
+			const open = allDetails().some((d) => !d.open);
+			for (const d of allDetails()) d.open = open;
+			refreshToggleLabel();
+		});
+		// `toggle` doesn't bubble; capture keeps the label in sync with manual folds.
+		footer.addEventListener("toggle", refreshToggleLabel, true);
 
 		for (const bond of bonds) {
 			void this.renderBond(footer, bond, file, comp);
 		}
+		refreshToggleLabel();
 
 		// Internal links inside our custom container need their own click handling.
 		// Native embeds handle their own clicks (and preventDefault), so we skip those.
