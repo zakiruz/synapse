@@ -1,0 +1,65 @@
+.synapse-footer {
+	margin-top: 2em;
+	padding-top: 0.75em;
+	border-top: 1px solid var(--background-modifier-border);
+	font-size: var(--font-text-size);
+}
+
+.synapse-footer-heading {
+	font-size: var(--font-smaller);
+	font-weight: 600;
+	color: var(--text-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin-bottom: 0.5em;
+}
+
+.synapse-bond {
+	margin: 0.5em 0;
+	padding: 0.5em 0.75em;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	background: var(--background-secondary);
+}
+
+.synapse-bond-summary {
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 0.6em;
+	list-style: none;
+}
+
+.synapse-bond-summary::-webkit-details-marker {
+	display: none;
+}
+
+.synapse-bond-atom {
+	font-weight: 600;
+}
+
+.synapse-bond-type {
+	font-size: var(--font-smallest);
+	padding: 0.1em 0.5em;
+	border-radius: var(--radius-s);
+	background: var(--background-modifier-hover);
+	color: var(--text-muted);
+}
+
+.synapse-bond-open {
+	margin-left: auto;
+	font-size: var(--font-smallest);
+	color: var(--text-faint);
+}
+
+.synapse-bond-body {
+	margin-top: 0.5em;
+	padding-top: 0.5em;
+	border-top: 1px dashed var(--background-modifier-border);
+}
+
+.synapse-bond-empty {
+	color: var(--text-faint);
+	font-style: italic;
+	font-size: var(--font-smaller);
+}

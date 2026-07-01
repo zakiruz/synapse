@@ -1,0 +1,9 @@
+{
+	"id": "synapse",
+	"name": "Synapse",
+	"version": "0.1.0",
+	"minAppVersion": "1.4.0",
+	"description": "Links as first-class notes. Bonds between atoms carry their own content, rendered on both ends.",
+	"author": "Zak",
+	"isDesktopOnly": false
+}
