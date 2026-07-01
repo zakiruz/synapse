@@ -3,7 +3,7 @@ synapse: bond
 atoms:
   - "[[Amazon]]"
   - "[[Password]]"
-type: credential
+type: "#X"
 ---
 
 - login: `test@example.com`
