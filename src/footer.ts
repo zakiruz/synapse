@@ -118,7 +118,7 @@ export class FooterManager {
 
 		const heading = footer.createDiv({ cls: "synapse-footer-heading" });
 		const title = heading.createDiv({ cls: "synapse-footer-title" });
-		title.createSpan({ text: "Synapses" });
+		title.createSpan({ text: this.settings().sectionHeading });
 		title.createSpan({ cls: "synapse-count", text: String(bonds.length) });
 
 		const buttons = heading.createDiv({ cls: "synapse-footer-buttons" });

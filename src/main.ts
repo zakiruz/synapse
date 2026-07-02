@@ -19,6 +19,7 @@ export interface SynapseSettings {
 	style: "card" | "minimal";
 	hideBondsInGraph: boolean;
 	sortOrder: SortOrder;
+	sectionHeading: string;
 }
 
 const DEFAULT_SETTINGS: SynapseSettings = {
@@ -28,6 +29,7 @@ const DEFAULT_SETTINGS: SynapseSettings = {
 	style: "card",
 	hideBondsInGraph: true,
 	sortOrder: "alphabetical",
+	sectionHeading: "Synapses",
 };
 
 /** Return the linkpath of the [[wiki-link]] spanning column `ch` on `line`, if any. */
@@ -158,7 +160,7 @@ export default class SynapsePlugin extends Plugin {
 			name: "Rebuild bond index",
 			callback: () => {
 				this.index.rebuild();
-				new Notice("Synapse: bond index rebuilt");
+				new Notice("Bonds: bond index rebuilt");
 			},
 		});
 
@@ -207,6 +209,19 @@ class SynapseSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.bondsFolder)
 					.onChange(async (value) => {
 						this.plugin.settings.bondsFolder = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName("Section heading")
+			.setDesc("Title of the rendered bonds section at the bottom of notes.")
+			.addText((text) =>
+				text
+					.setPlaceholder("Synapses")
+					.setValue(this.plugin.settings.sectionHeading)
+					.onChange(async (value) => {
+						this.plugin.settings.sectionHeading = value.trim() || "Synapses";
 						await this.plugin.saveSettings();
 					}),
 			);

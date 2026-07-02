@@ -1,4 +1,4 @@
-# Synapse
+# Bonds
 
 An Obsidian plugin that makes links first-class citizens. Notes are **atoms**; the connections between them are **bonds** — and a bond is itself a note that carries its own content.
 
@@ -12,7 +12,7 @@ The brain works the same way: memory isn't stored in neurons, it's stored in the
 
 Yet almost every note-taking tool, Obsidian included, inverts this: notes (nodes) get all the structure — titles, content, metadata, history — while the links that give them meaning are reduced to bare pointers with no content, no identity, no home. The most important part of a knowledge graph is the part you can't write anything in.
 
-Synapse fixes that inversion. A bond is a real note: it can hold content, carry a type, appear in search, and grow over time — because the relationship between two ideas is often the most valuable thing you know about either of them.
+Bonds fixes that inversion. A bond is a real note: it can hold content, carry a type, appear in search, and grow over time — because the relationship between two ideas is often the most valuable thing you know about either of them. The rendered section in each note is titled **Synapses** by default (configurable) — a nod to where nature keeps its knowledge.
 
 ## How it works
 
@@ -30,7 +30,7 @@ login: you@example.com
 2FA: authenticator app
 ```
 
-Open `Amazon.md` or `Password.md` and the bond's content appears in a collapsible **Bonds** section at the bottom of the note. Edit the bond once, both ends update.
+Open `Amazon.md` or `Password.md` and the bond's content appears in a collapsible **Synapses** section at the bottom of the note. Edit the bond once, both ends update.
 
 Everything is plain markdown — without the plugin, bonds are still ordinary notes that link to both atoms, visible in graph view and search. Nothing is locked in.
 
@@ -49,7 +49,7 @@ Everything is plain markdown — without the plugin, bonds are still ordinary no
 
 ## Installation
 
-Until Synapse is in the community plugin browser, install manually: copy `manifest.json`, `main.js`, and `styles.css` into `<your vault>/.obsidian/plugins/synapse/`, then enable it in **Settings → Community plugins**.
+Until Bonds is in the community plugin browser, install manually: copy `manifest.json`, `main.js`, and `styles.css` into `<your vault>/.obsidian/plugins/bonds/`, then enable it in **Settings → Community plugins**.
 
 ## Development
 
