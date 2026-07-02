@@ -7,12 +7,14 @@ export interface SynapseSettings {
 	bondsFolder: string;
 	collapsedByDefault: boolean;
 	showFooter: boolean;
+	style: "card" | "minimal";
 }
 
 const DEFAULT_SETTINGS: SynapseSettings = {
 	bondsFolder: "Bonds",
 	collapsedByDefault: false,
 	showFooter: true,
+	style: "card",
 };
 
 /** Return the linkpath of the [[wiki-link]] spanning column `ch` on `line`, if any. */
@@ -184,6 +186,20 @@ class SynapseSettingTab extends PluginSettingTab {
 					this.plugin.settings.showFooter = value;
 					await this.plugin.saveSettings();
 				}),
+			);
+
+		new Setting(containerEl)
+			.setName("Bond style")
+			.setDesc("Card: each bond in its own box. Minimal: flat list separated by lines.")
+			.addDropdown((dd) =>
+				dd
+					.addOption("card", "Card")
+					.addOption("minimal", "Minimal")
+					.setValue(this.plugin.settings.style)
+					.onChange(async (value) => {
+						this.plugin.settings.style = value as "card" | "minimal";
+						await this.plugin.saveSettings();
+					}),
 			);
 
 		new Setting(containerEl)

@@ -96,6 +96,26 @@
 	font-size: var(--font-smaller);
 }
 
+/* Minimal style: flat list, bonds separated by thin lines. */
+.synapse-style-minimal .synapse-bond {
+	border: none;
+	border-radius: 0;
+	background: transparent;
+	padding: 0.6em 0;
+	margin: 0;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.synapse-style-minimal .synapse-bond:last-child {
+	border-bottom: none;
+}
+
+.synapse-style-minimal .synapse-bond-body {
+	border-top: none;
+	margin-top: 0.35em;
+	padding-top: 0;
+}
+
 /* Native embed inside a bond: strip the embed chrome, keep native behavior. */
 .synapse-embed.markdown-embed {
 	border-left: none;

@@ -66,6 +66,7 @@ export class FooterManager {
 
 		const footer = document.createElement("div") as FooterEl;
 		footer.classList.add("synapse-footer");
+		if (this.settings().style === "minimal") footer.classList.add("synapse-style-minimal");
 		const comp = new Component();
 		footer._synapseComp = comp;
 		comp.load();
