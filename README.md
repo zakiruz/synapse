@@ -37,6 +37,10 @@ Everything is plain markdown — without the plugin, bonds are still ordinary no
 - **Show bonds in notes** — toggle the rendered section
 - **Collapse bonds by default** — start bonds folded
 
+## Installation
+
+Until Synapse is in the community plugin browser, install manually: copy `manifest.json`, `main.js`, and `styles.css` into `<your vault>/.obsidian/plugins/synapse/`, then enable it in **Settings → Community plugins**.
+
 ## Development
 
 ```bash
@@ -45,7 +49,16 @@ npm run dev    # watch mode
 npm run build  # type-check + production build
 ```
 
-`test-vault/` is a ready-made vault with the plugin symlinked — open it in Obsidian, enable community plugins, and the sample Amazon/Password bond demonstrates the flow.
+For a live dev loop, symlink this folder into a test vault's `.obsidian/plugins/` and reload the plugin after builds.
+
+## Releasing
+
+```bash
+npm version patch   # bumps package.json, manifest.json, versions.json
+git push && git push --tags
+```
+
+Pushing a tag triggers the GitHub Action, which builds and creates a draft release with `main.js`, `manifest.json`, and `styles.css` attached.
 
 ## Roadmap (future brain territory)
 
