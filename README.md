@@ -4,6 +4,16 @@ An Obsidian plugin that makes links first-class citizens. Notes are **atoms**; t
 
 Information that belongs to a *relationship* (credentials for a site, the reason two ideas connect, the history between two people) lives in exactly one place — the bond note — and is rendered automatically at the bottom of **both** endpoint notes. No more copying the same snippet to both ends.
 
+## Why links deserve to be first-class
+
+We never actually know a thing *in itself* — we know it in relation to other things. A word is defined by other words. A price means nothing except relative to other prices. You know a person through shared history, a concept through what it resembles and what it opposes. Strip away everything a thing relates to and there is nothing left to know. All knowledge is relative; the relations *are* the knowledge.
+
+The brain works the same way: memory isn't stored in neurons, it's stored in the connections between them. A synapse is not a wire — it's where the information lives.
+
+Yet almost every note-taking tool, Obsidian included, inverts this: notes (nodes) get all the structure — titles, content, metadata, history — while the links that give them meaning are reduced to bare pointers with no content, no identity, no home. The most important part of a knowledge graph is the part you can't write anything in.
+
+Synapse fixes that inversion. A bond is a real note: it can hold content, carry a type, appear in search, and grow over time — because the relationship between two ideas is often the most valuable thing you know about either of them.
+
 ## How it works
 
 A bond is a plain markdown note with frontmatter:
