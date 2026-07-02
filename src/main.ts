@@ -2,6 +2,7 @@ import { App, MarkdownView, Notice, Plugin, PluginSettingTab, Setting, TFile, de
 import { BondIndex } from "./bondIndex";
 import { FooterManager } from "./footer";
 import { GraphFilter } from "./graph";
+import { BacklinkFilter } from "./backlinks";
 import { AtomSuggestModal, createBond } from "./createBond";
 
 export type SortOrder =
@@ -18,6 +19,7 @@ export interface SynapseSettings {
 	showFooter: boolean;
 	style: "card" | "minimal";
 	hideBondsInGraph: boolean;
+	hideBondsInBacklinks: boolean;
 	sortOrder: SortOrder;
 	sectionHeading: string;
 }
@@ -26,8 +28,9 @@ const DEFAULT_SETTINGS: SynapseSettings = {
 	bondsFolder: "Bonds",
 	collapsedByDefault: false,
 	showFooter: true,
-	style: "card",
+	style: "minimal",
 	hideBondsInGraph: true,
+	hideBondsInBacklinks: true,
 	sortOrder: "alphabetical",
 	sectionHeading: "Synapses",
 };
@@ -49,6 +52,7 @@ export default class SynapsePlugin extends Plugin {
 	index!: BondIndex;
 	footer!: FooterManager;
 	graph!: GraphFilter;
+	backlinks!: BacklinkFilter;
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
@@ -56,6 +60,8 @@ export default class SynapsePlugin extends Plugin {
 		this.index = new BondIndex(this.app, () => {
 			this.footer.refreshAll();
 			this.graph.refreshGraphs();
+			this.backlinks.patchAll();
+			this.backlinks.refresh();
 		});
 		this.footer = new FooterManager(
 			this.app,
@@ -64,6 +70,7 @@ export default class SynapsePlugin extends Plugin {
 			() => this.saveSettings(),
 		);
 		this.graph = new GraphFilter(this.app, this.index, () => this.settings.hideBondsInGraph);
+		this.backlinks = new BacklinkFilter(this.app, this.index, () => this.settings.hideBondsInBacklinks);
 
 		const refresh = debounce(() => this.footer.refreshAll(), 250, true);
 
@@ -71,17 +78,24 @@ export default class SynapsePlugin extends Plugin {
 			this.index.rebuild();
 			this.graph.patchOpenGraphs();
 			this.graph.refreshGraphs();
+			this.backlinks.patchAll();
 		});
 		this.registerEvent(this.app.metadataCache.on("resolved", () => this.index.requestRebuild()));
 		this.registerEvent(this.app.metadataCache.on("changed", () => this.index.requestRebuild()));
 		this.registerEvent(this.app.vault.on("delete", () => this.index.requestRebuild()));
 		this.registerEvent(this.app.vault.on("rename", () => this.index.requestRebuild()));
 
-		this.registerEvent(this.app.workspace.on("file-open", refresh));
+		this.registerEvent(
+			this.app.workspace.on("file-open", () => {
+				refresh();
+				this.backlinks.patchAll();
+			}),
+		);
 		this.registerEvent(
 			this.app.workspace.on("layout-change", () => {
 				refresh();
 				this.graph.patchOpenGraphs();
+				this.backlinks.patchAll();
 			}),
 		);
 
@@ -170,6 +184,7 @@ export default class SynapsePlugin extends Plugin {
 	onunload(): void {
 		this.footer.removeAll();
 		this.graph.unpatchAll();
+		this.backlinks.unpatchAll();
 	}
 
 	private openBondPicker(file: TFile): void {
@@ -269,6 +284,18 @@ class SynapseSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 					this.plugin.graph.patchOpenGraphs();
 					this.plugin.graph.refreshGraphs();
+				}),
+			);
+
+		new Setting(containerEl)
+			.setName("Hide bonds in linked mentions")
+			.setDesc("Bond notes are filtered out of the backlinks pane and the Linked mentions section.")
+			.addToggle((toggle) =>
+				toggle.setValue(this.plugin.settings.hideBondsInBacklinks).onChange(async (value) => {
+					this.plugin.settings.hideBondsInBacklinks = value;
+					await this.plugin.saveSettings();
+					this.plugin.backlinks.patchAll();
+					this.plugin.backlinks.refresh();
 				}),
 			);
 	}
