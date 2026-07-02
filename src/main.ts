@@ -1,6 +1,7 @@
 import { App, MarkdownView, Notice, Plugin, PluginSettingTab, Setting, TFile, debounce } from "obsidian";
 import { BondIndex } from "./bondIndex";
 import { FooterManager } from "./footer";
+import { GraphFilter } from "./graph";
 import { AtomSuggestModal, createBond } from "./createBond";
 
 export interface SynapseSettings {
@@ -8,6 +9,7 @@ export interface SynapseSettings {
 	collapsedByDefault: boolean;
 	showFooter: boolean;
 	style: "card" | "minimal";
+	hideBondsInGraph: boolean;
 }
 
 const DEFAULT_SETTINGS: SynapseSettings = {
@@ -15,6 +17,7 @@ const DEFAULT_SETTINGS: SynapseSettings = {
 	collapsedByDefault: false,
 	showFooter: true,
 	style: "card",
+	hideBondsInGraph: true,
 };
 
 /** Return the linkpath of the [[wiki-link]] spanning column `ch` on `line`, if any. */
@@ -33,23 +36,37 @@ export default class SynapsePlugin extends Plugin {
 	settings: SynapseSettings = DEFAULT_SETTINGS;
 	index!: BondIndex;
 	footer!: FooterManager;
+	graph!: GraphFilter;
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
 
-		this.index = new BondIndex(this.app, () => this.footer.refreshAll());
+		this.index = new BondIndex(this.app, () => {
+			this.footer.refreshAll();
+			this.graph.refreshGraphs();
+		});
 		this.footer = new FooterManager(this.app, this.index, () => this.settings);
+		this.graph = new GraphFilter(this.app, this.index, () => this.settings.hideBondsInGraph);
 
 		const refresh = debounce(() => this.footer.refreshAll(), 250, true);
 
-		this.app.workspace.onLayoutReady(() => this.index.rebuild());
+		this.app.workspace.onLayoutReady(() => {
+			this.index.rebuild();
+			this.graph.patchOpenGraphs();
+			this.graph.refreshGraphs();
+		});
 		this.registerEvent(this.app.metadataCache.on("resolved", () => this.index.requestRebuild()));
 		this.registerEvent(this.app.metadataCache.on("changed", () => this.index.requestRebuild()));
 		this.registerEvent(this.app.vault.on("delete", () => this.index.requestRebuild()));
 		this.registerEvent(this.app.vault.on("rename", () => this.index.requestRebuild()));
 
 		this.registerEvent(this.app.workspace.on("file-open", refresh));
-		this.registerEvent(this.app.workspace.on("layout-change", refresh));
+		this.registerEvent(
+			this.app.workspace.on("layout-change", () => {
+				refresh();
+				this.graph.patchOpenGraphs();
+			}),
+		);
 
 		this.addCommand({
 			id: "create-bond",
@@ -135,6 +152,7 @@ export default class SynapsePlugin extends Plugin {
 
 	onunload(): void {
 		this.footer.removeAll();
+		this.graph.unpatchAll();
 	}
 
 	private openBondPicker(file: TFile): void {
@@ -209,6 +227,18 @@ class SynapseSettingTab extends PluginSettingTab {
 				toggle.setValue(this.plugin.settings.collapsedByDefault).onChange(async (value) => {
 					this.plugin.settings.collapsedByDefault = value;
 					await this.plugin.saveSettings();
+				}),
+			);
+
+		new Setting(containerEl)
+			.setName("Hide bonds in graph view")
+			.setDesc("Bond notes disappear from the graph; their atoms are shown linked directly to each other instead.")
+			.addToggle((toggle) =>
+				toggle.setValue(this.plugin.settings.hideBondsInGraph).onChange(async (value) => {
+					this.plugin.settings.hideBondsInGraph = value;
+					await this.plugin.saveSettings();
+					this.plugin.graph.patchOpenGraphs();
+					this.plugin.graph.refreshGraphs();
 				}),
 			);
 	}
