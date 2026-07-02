@@ -4,12 +4,21 @@ import { FooterManager } from "./footer";
 import { GraphFilter } from "./graph";
 import { AtomSuggestModal, createBond } from "./createBond";
 
+export type SortOrder =
+	| "alphabetical"
+	| "alphabeticalReverse"
+	| "byModifiedTime"
+	| "byModifiedTimeReverse"
+	| "byCreatedTime"
+	| "byCreatedTimeReverse";
+
 export interface SynapseSettings {
 	bondsFolder: string;
 	collapsedByDefault: boolean;
 	showFooter: boolean;
 	style: "card" | "minimal";
 	hideBondsInGraph: boolean;
+	sortOrder: SortOrder;
 }
 
 const DEFAULT_SETTINGS: SynapseSettings = {
@@ -18,6 +27,7 @@ const DEFAULT_SETTINGS: SynapseSettings = {
 	showFooter: true,
 	style: "card",
 	hideBondsInGraph: true,
+	sortOrder: "alphabetical",
 };
 
 /** Return the linkpath of the [[wiki-link]] spanning column `ch` on `line`, if any. */
@@ -45,7 +55,12 @@ export default class SynapsePlugin extends Plugin {
 			this.footer.refreshAll();
 			this.graph.refreshGraphs();
 		});
-		this.footer = new FooterManager(this.app, this.index, () => this.settings);
+		this.footer = new FooterManager(
+			this.app,
+			this.index,
+			() => this.settings,
+			() => this.saveSettings(),
+		);
 		this.graph = new GraphFilter(this.app, this.index, () => this.settings.hideBondsInGraph);
 
 		const refresh = debounce(() => this.footer.refreshAll(), 250, true);
