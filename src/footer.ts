@@ -204,7 +204,25 @@ export class FooterManager {
 			});
 		});
 
-		parent.appendChild(footer);
+		this.insertFooter(parent, footer);
+	}
+
+	/**
+	 * Place the footer above the core "Linked mentions" section (embedded
+	 * backlinks / .mod-footer) when present; otherwise at the end of content.
+	 */
+	private insertFooter(parent: HTMLElement, footer: HTMLElement): void {
+		let anchor: HTMLElement | null =
+			parent.querySelector<HTMLElement>(".embedded-backlinks") ??
+			parent.querySelector<HTMLElement>(".mod-footer");
+		while (anchor && anchor.parentElement !== parent) {
+			anchor = anchor.parentElement;
+		}
+		if (anchor) {
+			parent.insertBefore(footer, anchor);
+		} else {
+			parent.appendChild(footer);
+		}
 	}
 
 	private sortBonds(bonds: Bond[]): Bond[] {
