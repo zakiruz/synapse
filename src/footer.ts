@@ -265,7 +265,7 @@ export class FooterManager {
 
 		const others = bond.atomPaths.filter((p) => p !== current.path);
 		const otherLabels: string[] = [];
-		summary.createSpan({ cls: "synapse-bond-arrow", text: "↔" });
+		summary.createSpan({ cls: "synapse-bond-arrow", text: "–" });
 		if (others.length === 0) {
 			const title = summary.createEl("a", {
 				cls: "internal-link synapse-bond-atom",
@@ -274,7 +274,7 @@ export class FooterManager {
 			title.setAttribute("data-href", bond.file.path);
 		}
 		others.forEach((p, i) => {
-			if (i > 0) summary.createSpan({ cls: "synapse-bond-arrow", text: "↔" });
+			if (i > 0) summary.createSpan({ cls: "synapse-bond-arrow", text: "–" });
 			const f = this.app.vault.getAbstractFileByPath(p);
 			const label = f instanceof TFile ? f.basename : p;
 			otherLabels.push(label);
