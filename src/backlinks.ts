@@ -1,16 +1,44 @@
-import { App } from "obsidian";
+import { App, TFile } from "obsidian";
 import { BondIndex } from "./bondIndex";
 
-/* The backlinks pane has no public API, so this wraps the internal
- * SearchResultDom.addResult on each backlink component. Guarded and
- * fails soft: if internals change, bond notes simply reappear in
- * Linked mentions. Deliberately does NOT touch
- * metadataCache.getBacklinksForFile — rename link-updating may depend
- * on it, and bonds must keep their atom links updated on rename. */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* The backlinks pane has no public API. We type the small internal surface
+ * we touch structurally and reach it via unknown-casts; guarded and fails
+ * soft: if internals change, bond notes simply reappear in Linked mentions.
+ * Deliberately does NOT touch metadataCache.getBacklinksForFile — rename
+ * link-updating may depend on it, and bonds must keep their atom links
+ * updated on rename. */
 
+interface SearchResultItemLike {
+	el?: HTMLElement;
+}
+
+/** The internal result-list DOM whose addResult we wrap. */
+interface SearchResultDomLike {
+	addResult: (file: TFile | null, ...rest: unknown[]) => SearchResultItemLike | undefined;
+	removeResult?: (file: TFile) => void;
+}
+
+/** The internal backlink component (sidebar pane and in-document). */
+interface BacklinkComponentLike {
+	backlinkDom?: SearchResultDomLike;
+	recomputeBacklink?: (file: unknown) => void;
+	file?: unknown;
+}
+
+interface BacklinkViewLike {
+	backlink?: BacklinkComponentLike;
+}
+
+interface MarkdownViewWithBacklinks {
+	backlinks?: BacklinkComponentLike;
+}
+
+/**
+ * Filters bond notes out of the backlinks pane and the in-document
+ * "Linked mentions" section.
+ */
 export class BacklinkFilter {
-	private patched: Array<{ dom: any; original: any }> = [];
+	private patched: Array<{ dom: SearchResultDomLike; original: SearchResultDomLike["addResult"] }> = [];
 
 	constructor(
 		private app: App,
@@ -18,30 +46,34 @@ export class BacklinkFilter {
 		private enabled: () => boolean,
 	) {}
 
-	/** Wrap every open backlink component (sidebar pane + in-document). */
-	patchAll(): void {
+	private components(): BacklinkComponentLike[] {
+		const out: BacklinkComponentLike[] = [];
 		for (const leaf of this.app.workspace.getLeavesOfType("backlink")) {
-			this.patchDom((leaf.view as any)?.backlink?.backlinkDom);
+			const view = leaf.view as unknown as BacklinkViewLike;
+			if (view.backlink) out.push(view.backlink);
 		}
 		for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
-			this.patchDom((leaf.view as any)?.backlinks?.backlinkDom);
+			const view = leaf.view as unknown as MarkdownViewWithBacklinks;
+			if (view.backlinks) out.push(view.backlinks);
+		}
+		return out;
+	}
+
+	/** Wrap every open backlink component (sidebar pane + in-document). */
+	patchAll(): void {
+		for (const component of this.components()) {
+			this.patchDom(component.backlinkDom);
 		}
 	}
 
 	/** Recompute open backlink lists so the filter applies immediately. */
 	refresh(): void {
-		const recompute = (bl: any) => {
+		for (const component of this.components()) {
 			try {
-				bl?.recomputeBacklink?.(bl?.file);
+				component.recomputeBacklink?.(component.file);
 			} catch {
 				// internal signature changed; next natural recompute will apply
 			}
-		};
-		for (const leaf of this.app.workspace.getLeavesOfType("backlink")) {
-			recompute((leaf.view as any)?.backlink);
-		}
-		for (const leaf of this.app.workspace.getLeavesOfType("markdown")) {
-			recompute((leaf.view as any)?.backlinks);
 		}
 	}
 
@@ -57,22 +89,26 @@ export class BacklinkFilter {
 		this.refresh();
 	}
 
-	private patchDom(dom: any): void {
+	private patchDom(dom: SearchResultDomLike | undefined): void {
 		if (!dom || typeof dom.addResult !== "function") return;
 		if (this.patched.some((p) => p.dom === dom)) return;
 
 		const original = dom.addResult;
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		const self = this;
+		const enabled = this.enabled;
+		const index = this.index;
 		this.patched.push({ dom, original });
-		dom.addResult = function (file: any, ...rest: any[]) {
+		dom.addResult = function (
+			this: SearchResultDomLike,
+			file: TFile | null,
+			...rest: unknown[]
+		): SearchResultItemLike | undefined {
 			const item = original.call(this, file, ...rest);
 			try {
-				if (self.enabled() && file?.path && self.index.isBond(file.path)) {
+				if (file && enabled() && index.isBond(file.path)) {
 					if (typeof this.removeResult === "function") {
 						this.removeResult(file);
 					} else {
-						item?.el?.detach?.();
+						item?.el?.detach();
 					}
 				}
 			} catch (e) {

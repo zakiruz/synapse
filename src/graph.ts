@@ -1,19 +1,30 @@
 import { App } from "obsidian";
 import { BondIndex } from "./bondIndex";
 
-/* The graph view has no public API, so this reaches into the internal
- * renderer. Everything is guarded and fails soft: if Obsidian's internals
- * change, graphs simply show bond notes as ordinary nodes again. */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* The graph view has no public API. We type the small internal surface we
+ * touch structurally and reach it via unknown-casts; everything is guarded
+ * and fails soft: if Obsidian's internals change, graphs simply show bond
+ * notes as ordinary nodes again. */
 
 interface GraphNodeData {
 	links: Record<string, boolean>;
-	[key: string]: unknown;
 }
 
 interface GraphData {
-	nodes: Record<string, GraphNodeData>;
-	[key: string]: unknown;
+	nodes?: Record<string, GraphNodeData>;
+}
+
+/** The internal renderer whose data feed we intercept. */
+interface InternalGraphRenderer {
+	setData: (data: GraphData) => unknown;
+}
+
+/** The internal shape of graph/localgraph views. */
+interface InternalGraphView {
+	renderer?: InternalGraphRenderer;
+	dataEngine?: {
+		render?: () => void;
+	};
 }
 
 const GRAPH_VIEW_TYPES = ["graph", "localgraph"];
@@ -23,7 +34,7 @@ const GRAPH_VIEW_TYPES = ["graph", "localgraph"];
  * atom-to-atom edges, so bonds read as connections rather than nodes.
  */
 export class GraphFilter {
-	private patched: Array<{ renderer: any; original: (data: GraphData) => void }> = [];
+	private patched: Array<{ renderer: InternalGraphRenderer; original: (data: GraphData) => unknown }> = [];
 
 	constructor(
 		private app: App,
@@ -31,22 +42,28 @@ export class GraphFilter {
 		private enabled: () => boolean,
 	) {}
 
-	patchOpenGraphs(): void {
+	private graphViews(): InternalGraphView[] {
+		const views: InternalGraphView[] = [];
 		for (const type of GRAPH_VIEW_TYPES) {
 			for (const leaf of this.app.workspace.getLeavesOfType(type)) {
-				this.patchRenderer((leaf.view as any)?.renderer);
+				views.push(leaf.view as unknown as InternalGraphView);
 			}
+		}
+		return views;
+	}
+
+	patchOpenGraphs(): void {
+		for (const view of this.graphViews()) {
+			this.patchRenderer(view.renderer);
 		}
 	}
 
 	refreshGraphs(): void {
-		for (const type of GRAPH_VIEW_TYPES) {
-			for (const leaf of this.app.workspace.getLeavesOfType(type)) {
-				try {
-					(leaf.view as any)?.dataEngine?.render?.();
-				} catch (e) {
-					console.error("Synapse: graph refresh failed", e);
-				}
+		for (const view of this.graphViews()) {
+			try {
+				view.dataEngine?.render?.();
+			} catch (e) {
+				console.error("Bonds: graph refresh failed", e);
 			}
 		}
 	}
@@ -63,7 +80,7 @@ export class GraphFilter {
 		this.refreshGraphs();
 	}
 
-	private patchRenderer(renderer: any): void {
+	private patchRenderer(renderer: InternalGraphRenderer | undefined): void {
 		if (!renderer || typeof renderer.setData !== "function") return;
 		if (this.patched.some((p) => p.renderer === renderer)) return;
 
@@ -73,7 +90,7 @@ export class GraphFilter {
 			try {
 				data = this.transform(data);
 			} catch (e) {
-				console.error("Synapse: graph transform failed", e);
+				console.error("Bonds: graph transform failed", e);
 			}
 			return original.call(renderer, data);
 		};
@@ -81,8 +98,8 @@ export class GraphFilter {
 
 	/** Remove bond nodes; connect each bond's atoms to each other directly. */
 	private transform(data: GraphData): GraphData {
-		if (!this.enabled() || !data?.nodes) return data;
 		const nodes = data.nodes;
+		if (!this.enabled() || !nodes) return data;
 
 		const bondPaths = Object.keys(nodes).filter((p) => this.index.isBond(p));
 		for (const bondPath of bondPaths) {

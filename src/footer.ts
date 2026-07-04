@@ -6,6 +6,26 @@ interface FooterEl extends HTMLElement {
 	_synapseComp?: Component;
 }
 
+/* The embed registry has no public API. We type the small internal surface
+ * we use structurally and reach it via an unknown-cast; renderNativeEmbed
+ * fails soft to a plain MarkdownRenderer if the internals ever change. */
+
+interface EmbedChildLike extends Component {
+	loadFile?: () => void | Promise<void>;
+}
+
+type EmbedCreator = (
+	context: { app: App; containerEl: HTMLElement; sourcePath: string; showInline: boolean; depth: number },
+	file: TFile,
+	subpath: string,
+) => EmbedChildLike | null;
+
+interface EmbedRegistryHost {
+	embedRegistry?: {
+		embedByExtension?: Record<string, EmbedCreator | undefined>;
+	};
+}
+
 interface FooterUiState {
 	query: string;
 	searchOpen: boolean;
@@ -91,7 +111,7 @@ export class FooterManager {
 		const state = this.uiState.get(file.path) ?? { query: "", searchOpen: false };
 		this.uiState.set(file.path, state);
 
-		const footer = document.createElement("div") as FooterEl;
+		const footer = parent.doc.createElement("div") as FooterEl;
 		footer.classList.add("synapse-footer");
 		if (this.settings().style === "minimal") footer.classList.add("synapse-style-minimal");
 		const comp = new Component();
@@ -193,8 +213,7 @@ export class FooterManager {
 			if (!target) return;
 			const linktext = target.getAttribute("data-href") ?? target.getAttribute("href");
 			if (!linktext) return;
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			(this.app.workspace as any).trigger("hover-link", {
+			this.app.workspace.trigger("hover-link", {
 				event: evt,
 				source: "synapse",
 				hoverParent,
@@ -342,8 +361,8 @@ export class FooterManager {
 	 */
 	private renderNativeEmbed(body: HTMLElement, bond: Bond, comp: Component): boolean {
 		try {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const creator = (this.app as any).embedRegistry?.embedByExtension?.["md"];
+			const registry = (this.app as unknown as EmbedRegistryHost).embedRegistry;
+			const creator = registry?.embedByExtension?.["md"];
 			if (typeof creator !== "function") return false;
 
 			const wrapper = body.createDiv({ cls: "internal-embed markdown-embed inline-embed synapse-embed" });
@@ -358,10 +377,10 @@ export class FooterManager {
 				return false;
 			}
 			comp.addChild(child);
-			child.loadFile?.();
+			void child.loadFile?.();
 			return true;
 		} catch (e) {
-			console.error("Synapse: native embed failed, using fallback renderer", e);
+			console.error("Bonds: native embed failed, using fallback renderer", e);
 			return false;
 		}
 	}

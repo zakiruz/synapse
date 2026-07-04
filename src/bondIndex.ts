@@ -9,7 +9,7 @@ export interface Bond {
 
 const LINK_RE = /\[\[([^\]|#]+)/;
 
-function parseAtomLink(raw: string): string | null {
+function parseAtomLink(raw: unknown): string | null {
 	if (typeof raw !== "string") return null;
 	const m = raw.match(LINK_RE);
 	if (m) return m[1].trim();
@@ -60,11 +60,8 @@ export class BondIndex {
 			const fm = this.app.metadataCache.getFileCache(file)?.frontmatter;
 			if (!fm || fm["synapse"] !== "bond") continue;
 
-			const rawAtoms = Array.isArray(fm["atoms"])
-				? fm["atoms"]
-				: fm["atoms"] != null
-					? [fm["atoms"]]
-					: [];
+			const fmAtoms: unknown = fm["atoms"];
+			const rawAtoms: unknown[] = Array.isArray(fmAtoms) ? fmAtoms : fmAtoms != null ? [fmAtoms] : [];
 
 			const atomPaths: string[] = [];
 			for (const raw of rawAtoms) {
